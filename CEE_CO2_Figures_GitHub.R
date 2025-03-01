@@ -21,26 +21,26 @@ library(nlme)
 library(EnvStats)
 
 #Load processed data####
-#Note: see data import and processing code for data citations and data processing steps
+#Note: see data import and processing code for data citations and data processing steps used to generate .RData files
 #Data are publicly available through Hubbard Brook Ecosystem Study Data Catalog EDI Repository, https://hubbardbrook.org/data-catalog/
 
-breaks_annual <- readRDS(".../Processed Data/Processed R Data/breaks_annual.RData")
-breaks_field <- readRDS(".../Processed Data/Processed R Data/breaks_field.RData") 
-breaks_lab <- readRDS(".../Processed Data/Processed R Data/breaks_lab.RData") 
-HBEF_clim <- readRDS(".../Processed Data/Processed R Data/HBEF_clim.RData")
-sensor_dat <- readRDS(".../Processed Data/Processed R Data/sensor_dat.RData")
-regional_atm <- readRDS(".../Processed Data/Processed R Data/regional_atm.RData")
-precip_chem <- readRDS(".../Processed Data/Processed R Data/precip_chem.RData") 
-lysim_data <- readRDS(".../Processed Data/Processed R Data/lysim_data.RData")
-W6_2002 <- read.table(".../Manuscript Data/w6_2002veg.txt", sep=",", header=T)
-W6_2007<- read.table(".../Manuscript Data/w62007veg.txt", sep=",", header=T)
-W6_2012 <- read.table(".../Manuscript Data/w62012veg.txt", sep=",", header=T)
-W6_2017 <- read.table(".../Manuscript Data/w6_2017_vegInventory.csv", sep=",", header=T)
-ff_carbon <- read.csv(".../Manuscript Data/FF_C_pool.csv")
+breaks_annual <- readRDS(".../breaks_annual.RData")
+breaks_field <- readRDS(".../breaks_field.RData") 
+breaks_lab <- readRDS(".../breaks_lab.RData") 
+HBEF_clim <- readRDS(".../HBEF_clim.RData")
+sensor_dat <- readRDS(".../sensor_dat.RData")
+regional_atm <- readRDS(".../regional_atm.RData")
+precip_chem <- readRDS(".../precip_chem.RData") 
+lysim_data <- readRDS(".../lysim_data.RData")
+W6_2002 <- read.table(".../w6_2002veg.txt", sep=",", header=T)
+W6_2007<- read.table(".../w62007veg.txt", sep=",", header=T)
+W6_2012 <- read.table(".../w62012veg.txt", sep=",", header=T)
+W6_2017 <- read.table(".../w6_2017_vegInventory.csv", sep=",", header=T)
+ff_carbon <- read.csv(".../FF_C_pool.csv")
 
 #Datasets new for R1 response####
 #Note: same dataset as originally downloaded, but retaining hourly time periods
-temp_hourly <- read.csv(".../Revision 1/R1 Data/hourly_soil_temperature_gradient_plots.csv")
+temp_hourly <- read.csv(".../hourly_soil_temperature_gradient_plots.csv")
 #Groffman, P.M., J. Duran, J.L. Morse, G.F. Wilson, and M.B. Green. 2022. Soil temperature along an elevation gradient at the Hubbard Brook Experimental Forest, 2010 - present ver 1. Environmental Data Initiative. https://doi.org/10.6073/pasta/85d9bc546191e92dad23077acc90a4bf (Accessed 2025-01-16).
 
 #Fig. 1: Env Chg#### 
@@ -222,8 +222,8 @@ biomass <- ggplot(W6_total) +
 anova_biomass <- aov(AbvBio_per_hectare.Mgha~Year, data=W6_total)
 TukeyHSD(anova_biomass)
 
-# pdf(".../Figures/Component Figures/HBEF_biomass.pdf", width=5.5, height=3.5) 
-# print(biomass) 
+# pdf("....", width=5.5, height=3.5) 
+print(biomass) 
 # dev.off() 
 
 #pH####
@@ -277,7 +277,7 @@ pH_all <- ggplot() +
         legend.text=element_text(size=12, color="black"), 
         legend.title=element_text(size=12, color="black"))
 
-pdf(".../Figures/Component Figures/pH_trend.pdf", width=7, height=6)
+#pdf(".../pH_trend.pdf", width=7, height=6)
 print(pH_all)
 #dev.off 
 
@@ -297,7 +297,7 @@ annual_plot$phase = factor(annual_plot$phase, levels=c("PRE","POST"), labels=c("
 annual_plot$HPU = factor(annual_plot$HPU, levels=c("Bhs","Bimodal"), labels=c("Higher elevation", "Lower elevation"))
 annual_plot$Site = factor(annual_plot$Site, levels=c("W1","BearBrook"), labels=c("Ca-treated", "Reference"))
 
-pdf(".../Revision 1/R1 Figures/Component Figures/annual_flux.pdf", width=8, height=5.5)
+pdf("...", width=8, height=5.5)
 print(ggplot(annual_plot) + 
         geom_point(aes(x=Year_contin, y=CO2_annual_flux, fill=phase), pch=21, size=3, alpha=0.3) + 
         stat_summary(aes(x=Year_contin, y=CO2_annual_flux), pch=24, geom="point",fun="mean", size=3, fill="black") + 
@@ -319,7 +319,7 @@ print(ggplot(annual_plot) +
 #dev.off
 
 #Check breakpoints at all landscape positions: 
-# pdf(".../Figures/Component Figures/annual_flux_elevation.pdf", width=8, height=5)
+# pdf("...", width=8, height=5)
 # print(ggplot(annual_plot) + 
 #         stat_summary(aes(x=Year_contin, y=CO2_annual_flux, fill=phase), pch=21, geom="point",fun="mean", size=3) + 
 #         stat_summary(aes(x=Year_contin, y=CO2_annual_flux), geom="errorbar",fun.data="mean_se") + 
@@ -464,15 +464,15 @@ Al_CO2_plot_poly <- ggplot() +
         axis.text=element_text(size=12, color="black"), 
         axis.title=element_text(size=12, color="black"))
 
-pdf(".../Figures/Component Figures/pH_CO2.pdf", width=5.2, height=5.4)
+pdf("...", width=5.2, height=5.4)
 print(pH_CO2_plot)
 #dev.off 
 
-pdf(".../Figures/Component Figures/Al_CO2.pdf", width=5.2, height=5.4)
+pdf("...", width=5.2, height=5.4)
 print(Al_CO2_plot)
 #dev.off 
 
-pdf(".../Figures/Component Figures/Al_time.pdf", width=5.2, height=5.4)
+pdf("...", width=5.2, height=5.4)
 print(Ali_plot)
 #dev.off 
 
@@ -622,13 +622,13 @@ plot_lab$HPU = factor(plot_lab$HPU, levels=c("Bhs","Bimodal"), labels=c("Higher 
 plot_lab$Site = factor(plot_lab$Site, levels=c("W1","BearBrook"), labels=c("Ca-treated", "Reference"))
 plot_lab$Hor = factor(plot_lab$Hor, levels=c("Oi/Oe", "Oa/A","Min"), labels=c("Oi/Oe", "Oa/A","Mineral soil"))
 
-#1: BIOC##########
+#1: BIOC####
 
 BIOC_JunJul <- subset(plot_lab, Month == "06" | Month == "07")
 
 str(BIOC_JunJul)
 
-# pdf(".../Revision 1/R1 Figures/Component Figures/BIOC_JunJul.pdf", width=5.25, height=7)
+# pdf("...", width=5.25, height=7)
 print(ggplot(BIOC_JunJul) +  
         geom_point(aes(x=Year_contin, y=BIOC/1000, fill=phase), pch=21, size=3, alpha=0.1, show.legend=TRUE) + 
         stat_summary(aes(x=Year_contin, y=BIOC/1000), pch=24, geom="point",fun="mean", size=2, fill="black") + 
@@ -681,7 +681,7 @@ RESPC_JunJul <- subset(plot_lab, Month == "06" | Month == "07")
 
 str(RESPC_JunJul)
 
-# pdf(".../Revision 1/R1 Figures/Component Figures/RESPC_JunJul.pdf", width=5.25, height=7)
+# pdf("...", width=5.25, height=7)
 print(ggplot(RESPC_JunJul) +  
         geom_point(aes(x=Year_contin, y=RESPC, fill=phase), pch=21, size=3, alpha=0.1, show.legend=TRUE) + 
         stat_summary(aes(x=Year_contin, y=RESPC), pch=24, geom="point",fun="mean", size=2, fill="black") + 
@@ -702,7 +702,7 @@ print(ggplot(RESPC_JunJul) +
               strip.background=element_rect(fill="white")))
 #dev.off
 
-#pdf(".../Revision 1/R1 Figures/Component Figures/RESPC_ln_OiOe.pdf", width=5.75, height=4)
+#pdf("...", width=5.75, height=4)
 print(ggplot(subset(RESPC_JunJul, phase == "Post-breakpoint" & Hor == "Oi/Oe")) +
         stat_summary(aes(x=Year_contin, y=log(RESPC), fill=HPU, shape=HPU), geom="point",fun="mean", size=2) +
         stat_summary(aes(x=Year_contin, y=log(RESPC), group=HPU), color="black", geom="errorbar", fun.data="mean_se") +
@@ -744,7 +744,7 @@ SRESPC_JunJul <- subset(plot_lab, Month == "06" | Month == "07")
 
 str(SRESPC_JunJul)
 
-#pdf(".../Revision 1/R1 Figures/Component Figures/SRESPC_JunJul.pdf", width=5, height=7)
+#pdf("...", width=5, height=7)
 print(ggplot(SRESPC_JunJul) +  
         geom_point(aes(x=Year_contin, y=SRESPC, fill=phase), pch=21, size=3, alpha=0.1, show.legend=TRUE) + 
         stat_summary(aes(x=Year_contin, y=SRESPC), pch=24, geom="point",fun="mean", size=2, fill="black") + 
@@ -765,7 +765,7 @@ print(ggplot(SRESPC_JunJul) +
               strip.background=element_rect(fill="white")))
 #dev.off
 
-#pdf(".../Revision 1/R1 Figures/Component Figures/SRESPC_ln.pdf", width=4, height=6)
+#pdf("...", width=4, height=6)
 print(ggplot(subset(SRESPC_JunJul, phase == "Post-breakpoint")) + 
         stat_summary(aes(x=Year_contin, y=log(SRESPC)), fill="black", geom="point",fun="mean", size=2, pch=21) + 
         stat_summary(aes(x=Year_contin, y=log(SRESPC)), color="black", geom="errorbar", fun.data="mean_se") + 
@@ -790,7 +790,7 @@ CN_ratio_JunJul <- subset(plot_lab, Month == "06" | Month == "07")
 
 str(CN_ratio_JunJul)
 
-#pdf(".../Revision 1/R1 Figures/Component Figures/CN_ratio_JunJul.pdf", width=5.25, height=7)
+#pdf("...", width=5.25, height=7)
 print(ggplot(CN_ratio_JunJul) +  
         geom_point(aes(x=Year_contin, y=CN_ratio, fill=phase), pch=21, size=3, alpha=0.1, show.legend=TRUE) + 
         stat_summary(aes(x=Year_contin, y=CN_ratio), pch=24, geom="point",fun="mean", size=2, fill="black") + 
@@ -811,7 +811,7 @@ print(ggplot(CN_ratio_JunJul) +
               strip.background=element_rect(fill="white")))
 #dev.off
 
-#pdf(".../Revision 1/R1 Figures/Component Figures/CNratio_ln_OiOe.pdf", width=5.75, height=4)
+#pdf("...", width=5.75, height=4)
 print(ggplot(subset(CN_ratio_JunJul, phase == "Post-breakpoint" & Hor == "Oi/Oe")) + 
         stat_summary(aes(x=Year_contin, y=log(CN_ratio), fill=HPU, shape=HPU), geom="point",fun="mean", size=3, show.legend=TRUE) + 
         stat_summary(aes(x=Year_contin, y=log(CN_ratio), group=HPU), geom="errorbar", fun.data="mean_se") + 
@@ -894,7 +894,7 @@ print(qqnorm(as.numeric(resid(BIOC_OaA_lme))))
 print(qqnorm(as.numeric(resid(BIOC_Min_lme))))
 #dev.off 
 
-#2: RESPC##########
+#2: RESPC####
 #Test for differences in slope across elevation and treatment 
 RESPC_OiOe_lme = lme(log(RESPC)~Year_contin + Year_contin:HPU + Year_contin:Site, random=~1|Elevation, data = subset(breaks_lab, phase == "POST" & Hor == "Oi/Oe" & (Month == "07" | Month == "06")), na.action=na.omit, corr = corCAR1())
 anova_RESPC_OiOe_lme=as.data.frame(anova(RESPC_OiOe_lme))
@@ -926,15 +926,15 @@ anova_RESPC_Min_lme$horizon = rep("Min", nrow(anova_RESPC_Min_lme))
 # Year_contin:HPU      1   287   2.2127  0.1380
 # Year_contin:Site     1   287   0.0098  0.9213
 
-#pdf(paste0(".../Processed Data/Fits/LMM/Diagnostic plots/RESPC_OiOe_lme_qqplot.pdf"))
+#pdf(paste0("..."))
 print(qqnorm(as.numeric(resid(RESPC_OiOe_lme))))
 #dev.off 
 
-#pdf(paste0(".../Processed Data/Fits/LMM/Diagnostic plots/RESPC_OaA_lme_qqplot.pdf"))
+#pdf(paste0("..."))
 print(qqnorm(as.numeric(resid(RESPC_OaA_lme))))
 #dev.off 
 
-#pdf(paste0(".../Processed Data/Fits/LMM/Diagnostic plots/RESPC_Min_lme_qqplot.pdf"))
+#pdf(paste0("..."))
 print(qqnorm(as.numeric(resid(RESPC_Min_lme))))
 #dev.off 
 
@@ -981,15 +981,15 @@ anova_SRESPC_Min_lme$horizon = rep("Min", nrow(anova_SRESPC_Min_lme))
 # Year_contin:Site     1   286   0.2800  0.5971
 #Slope: -0.06124
 
-#pdf(paste0(".../Processed Data/Fits/LMM/Diagnostic plots/SRESPC_OiOe_lme_qqplot.pdf"))
+#pdf(paste0("..."))
 print(qqnorm(as.numeric(resid(SRESPC_OiOe_lme))))
 #dev.off 
 
-#pdf(paste0(".../Processed Data/Fits/LMM/Diagnostic plots/SRESPC_OaA_lme_qqplot.pdf"))
+#pdf(paste0("..."))
 print(qqnorm(as.numeric(resid(SRESPC_OaA_lme))))
 #dev.off 
 
-#pdf(paste0(".../Processed Data/Fits/LMM/Diagnostic plots/SRESPC_Min_lme_qqplot.pdf"))
+#pdf(paste0("..."))
 print(qqnorm(as.numeric(resid(SRESPC_Min_lme))))
 #dev.off 
 
@@ -1084,7 +1084,7 @@ Rs_mic_join$phase <- factor(ifelse(Rs_mic_join$Year_contin < 2015, "Pre-2015", "
 
 Rs_mic_join$phase <- factor(Rs_mic_join$phase, levels=c("Pre-2015","2015-present"))
 
-#pdf(".../Revision 1/R1 Figures/Component Figures/BIOC_Rs_Jul.pdf", width=11.5, height=4.5)
+#pdf("...", width=11.5, height=4.5)
 print(ggplot(subset(Rs_mic_join, !(Year == "2010"))) + 
         geom_point(aes(x=BIOC_summer_mean/1000, y=Resp_summer_mean, fill=phase), size=3, pch=21) + 
         stat_smooth(aes(x=BIOC_summer_mean/1000, y=Resp_summer_mean, group=phase), method="lm", formula=y~x, color="black") + 
@@ -1261,7 +1261,7 @@ values = unname(watlington(7))
 
 #SI Fig. 7a: Mean, all months####
 
-#pdf(".../Revision 1/R1 Figures/Component Figures/daily_temp_all.pdf", width=6, height=4.5)
+#pdf("...", width=6, height=4.5)
 print(ggplot(rate_temp) + geom_point(aes(x=Cal_date, y=Mean_daily_temp.degreesC, fill=Month), pch=21, size=3) + 
         stat_smooth(aes(x=Cal_date, y=Mean_daily_temp.degreesC), method="lm", color="black") +
         theme_bw() + 
@@ -1280,7 +1280,7 @@ temp_all_lm <- lm(Mean_daily_temp.degreesC~Year_contin, data=rate_temp)
 # -0.1358
 
 #SI Fig. 7b: Mean for July/August####
-#pdf(".../Revision 1/R1 Figures/Component Figures/daily_temp_jul_aug.pdf", width=6, height=4.5)
+#pdf("...", width=6, height=4.5)
 print(ggplot(subset(rate_temp, Month == "07" | Month == "08")) + 
         geom_point(aes(x=Cal_date, y=Mean_daily_temp.degreesC, fill=Month), pch=21, size=3) + 
         stat_smooth(aes(x=Cal_date, y=Mean_daily_temp.degreesC), method="lm", color="black") +
@@ -1300,7 +1300,7 @@ temp_JulAug_lm <- lm(Mean_daily_temp.degreesC~Year_contin, data=subset(rate_temp
 #0.19496
 
 #SI Fig. 7c: Min for July/August####
-#pdf(".../Revision 1/R1 Figures/Component Figures/daily_temp_jul_aug_min.pdf", width=6, height=4.5)
+#pdf("...", width=6, height=4.5)
 print(ggplot(subset(rate_temp, Month == "07" | Month == "08")) +
         geom_point(aes(x=Cal_date, y=Min_daily_temp.degreesC, fill=Month), pch=21, size=3) + 
         stat_smooth(aes(x=Cal_date, y=Min_daily_temp.degreesC), method="lm", color="black") +
@@ -1320,7 +1320,7 @@ min_temp_JulAug_lm <- lm(Min_daily_temp.degreesC~Year_contin, data=subset(rate_t
 #0.20902
 
 #SI Fig. 7c: Max for July/August####
-#pdf(".../Revision 1/R1 Figures/Component Figures/daily_temp_jul_aug_max.pdf", width=6, height=4.5)
+#pdf("...", width=6, height=4.5)
 print(ggplot(subset(rate_temp, Month == "07" | Month == "08")) + 
         geom_point(aes(x=Cal_date, y=Max_daily_temp.degreesC, fill=Month), pch=21, size=3) + 
         stat_smooth(aes(x=Cal_date, y=Max_daily_temp.degreesC), method="lm", color="black") +
@@ -1369,7 +1369,7 @@ avg_2020 = summarySE(JulAug_2020, measurevar = "CO2_rate")
 #SI Methods: Methodological artifacts check####
 
 #Is there a directional change in "measurement timing"?
-#Metrics of "timing": months of sampling, day of month, time of day, "warmer daytime"? 
+#Metrics of "timing": months of sampling, day of month, time of day
 
 #SI Fig. 10: November measurements####
 #November added: does adding November affect rates (Nov not included in "growing season" flux)? 
@@ -1377,7 +1377,7 @@ avg_2020 = summarySE(JulAug_2020, measurevar = "CO2_rate")
 
 Field_Nov_excluded <- breaks_field %>% filter(!(Month == "11"))
 
-#pdf(".../Revision 1/R1 Figures/Component Figures/Rates_Nov_excluded.pdf", width=5, height=4.5)
+#pdf("...", width=5, height=4.5)
 print(ggplot(Field_Nov_excluded) + 
         geom_point(aes(x=Date.posixct, y=CO2_rate)) + 
         labs(x="Year", y=expression(paste("Soil respiration rate (g"," ",CO[2],"-C"," ",m^-2," ",hr^-1,")"))) + 
@@ -1387,7 +1387,7 @@ print(ggplot(Field_Nov_excluded) +
               axis.title=element_text(size=14, color="black"))) 
 #dev.off 
 
-#pdf(".../Revision 1/R1 Figures/Component Figures/Rates_Nov_included.pdf", width=5, height=4.5)
+#pdf("...pdf", width=5, height=4.5)
 print(ggplot(breaks_field) + 
         geom_point(aes(x=Date.posixct, y=CO2_rate)) + 
         labs(x="Year", y=expression(paste("Soil respiration rate (g"," ",CO[2],"-C"," ",m^-2," ",hr^-1,")"))) + 
@@ -1399,7 +1399,7 @@ print(ggplot(breaks_field) +
 
 #SI Fig. 11: Day of month####
 #Day of month: did the day of month get consistently later/earlier over the long-term record? 
-#pdf(".../Revision 1/R1 Figures/Component Figures/day_of_month.pdf", width=10, height=4.5)
+#pdf("...", width=10, height=4.5)
 print(ggplot(breaks_field) + 
         geom_boxplot(aes(x=Year, y=as.numeric(Day))) + 
         geom_point(aes(x=Year, y=as.numeric(Day), fill=Month), pch=21) + 
