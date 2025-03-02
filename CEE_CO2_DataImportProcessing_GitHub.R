@@ -69,24 +69,21 @@ str(resp_lab)
 #BIOC - milligramPerKilogram
 
 #3: Soil temperature####
-soil_temp <- read.csv("hourly_soil_temperature_gradient_plots.csv")
-
 # Groffman, P.M., J. Duran, J.L. Morse, G.F. Wilson, and M.B. Green. 2022. Soil temperature along an elevation gradient at the Hubbard Brook Experimental Forest, 2010 - present ver 1. Environmental Data Initiative. https://doi.org/10.6073/pasta/85d9bc546191e92dad23077acc90a4bf (Accessed 2023-05-02).
 
+soil_temp <- read.csv("hourly_soil_temperature_gradient_plots.csv")
+
 #4: Air temperature and precipitation####
-
-air_temp <- read.csv("HBEF_air_temp_daily_1957-2022.csv")
-
 #USDA Forest Service, Northern Research Station. 2022. Hubbard Brook Experimental Forest: Daily Temperature Record, 1955 - present ver 11. Environmental Data Initiative. https://doi.org/10.6073/pasta/e51ee820bb04aace06fa35c00946b050 (Accessed 2023-05-06).
-
-precip <- read.csv("dailyGagePrecip1956-2022.csv")
-
 #USDA Forest Service, Northern Research Station. 2022. Hubbard Brook Experimental Forest: Daily Precipitation Rain Gage Measurements, 1956 - present ver 18. Environmental Data Initiative. https://doi.org/10.6073/pasta/aed7e68772106753f3c7deef4f75e09c (Accessed 2023-05-06).
 
+air_temp <- read.csv("HBEF_air_temp_daily_1957-2022.csv")
+precip <- read.csv("dailyGagePrecip1956-2022.csv")
+
 #5: HARV Ameriflux Data (CO2)############
-regional_CO2 <- read.csv("AMF_US-Ha1_BASE_HR_19-5_rowsremoved.csv")
 #J. William Munger (2022), AmeriFlux BASE US-Ha1 Harvard Forest EMS Tower (HFR1), Ver. 19-5, AmeriFlux AMP, (Dataset). https://doi.org/10.17190/AMF/1246059. 
 #Downloaded 05-06-23. 
+regional_CO2 <- read.csv("AMF_US-Ha1_BASE_HR_19-5_rowsremoved.csv")
 
 #6: Regional ozone (US EPA)#################
 regional_ozone <- read.csv("OzoneNortheast.csv")
@@ -94,19 +91,26 @@ regional_ozone <- read.csv("OzoneNortheast.csv")
 #Not used in manuscript
 
 #7: Hubbard Brook precipitation chemistry##########
-precip_chem <- read.table("rg22-pcp.txt", sep=",", header=T) 
 # Likens, G. 2019. Chemistry of Bulk Precipitation at Hubbard Brook Experimental Forest, 1969 - present, Robert S. Pierce Ecosystem Laboratory Facility ver 8. Environmental Data Initiative. https://doi.org/10.6073/pasta/49b5c122f2c94353e3271152c6e869c6 (Accessed 2023-05-29).
+precip_chem <- read.table("rg22-pcp.txt", sep=",", header=T) 
 
 #8: Above-ground biomass####
+#Battles, J. et al. Forest Inventory of a Northern Hardwood Forest: Watershed 6 2002, Hubbard Brook Experimental Forest ver 8. Environmental Data Initiative https://doi.org/10.6073/pasta/bb0e2c20752780c97b63b5544c1aba60 (2019). 
+#Battles, J. et al. Forest Inventory of a Northern Hardwood Forest: Watershed 6 2007, Hubbard Brook Experimental Forest ver 2. Environmental Data Initiative https://doi.org/10.6073/pasta/6a1cd73c4e196f930eda7d8e25bb69d8 (2019). 
+#Battles, J. et al. Forest Inventory of a Northern Hardwood Forest: Watershed 6, 2012, Hubbard Brook Experimental Forest ver 2. Environmental Data Initiative https://doi.org/10.6073/pasta/b356ff76e03f661c581262658834a7c7 (2019). 
+#Battles, J. et al. Forest Inventory of a Northern Hardwood Forest: Watershed 6, 2017, Hubbard Brook Experimental Forest ver 1. Environmental Data Initiative https://doi.org/10.6073/pasta/0593ba15fb76a4f085797126a1bea3a7 (2019). 
 W6_2002 <- read.table("w6_2002veg.txt", sep=",", header=T)
 W6_2007<- read.table("w62007veg.txt", sep=",", header=T)
 W6_2012 <- read.table("w62012veg.txt", sep=",", header=T)
 W6_2017 <- read.table("w6_2017_vegInventory.csv", sep=",", header=T)
 
 #9: Forest floor carbon####
+#Early data and methods from Johnson, C. E., Driscoll, C. T., Blum, J. D., Fahey, T. J. & Battles, J. J. Soil chemical dynamics after calcium silicate addition to a northern hardwood forest. Soil Sci. Soc. Am. J.  78, 1458–1468 (2014). 
+#Updated data in FF_C_pool.csv file included with this repository
 ff_carbon <- read.csv("FF_C_pool.csv")
 
 #10: Lysimeter data####
+#Driscoll, C. T. Chemistry of freely-draining soil solutions at the Hubbard Brook Experimental Forest, Watershed 6, 1982 - present ver 18. Environmental Data Initiative https://doi.org/10.6073/pasta/bd7ba65a4b703760c82c4e16fe494fb6 (2022). 
 lysim_data <- read.csv("W6Lysim_HB1984-2020 Al Corrected MG240712.csv", na.strings=c("-1999.98","-1777.76","-999.99","-888.88","-874.71", "-773.38", "-757.67"))
 lysim_data$Date_posixct <- as.POSIXct(lysim_data$Date, tz="EST")
 
