@@ -1,6 +1,6 @@
 #Symptoms of a changing carbon cycle: a decadal-scale breakpoint in soil respiration in a Northeastern US forest 
 #Figures 
-#Updated 02-17-25
+#Updated 05-13-25
 
 #Load packages##########
 
@@ -45,6 +45,7 @@ temp_hourly <- read.csv(".../hourly_soil_temperature_gradient_plots.csv")
 
 #Fig. 1: Env Chg#### 
 #Note: No change in R1
+#Note: No change in R2
 
 #Air temperature####
 
@@ -261,6 +262,7 @@ pH_post2015 <- lm(pH~Year_contin, data=subset(min_pH, Year_contin >= 2015))
 
 #SI Fig. 1: Soil pH by watershed####
 #No change in R1
+#No change in R2
 
 pH_all <- ggplot() + 
   geom_point(aes(x=Year_contin, y=pH, fill=Elevation_group), data=lab_july, pch=21) + 
@@ -291,19 +293,20 @@ pH_mean <- summarySE(lab_july, measurevar="pH", groupvars=c("Year", "Year_contin
 
 #Fig. 2: Annual fluxes####
 #Revised in R1 to show all points separately with one overall mean; resolves issue with overlapping breakpoint dates
+#Revised in R2 to use June, July, and August cumulative fluxes, with gap-filling
 
 annual_plot = breaks_annual
 annual_plot$phase = factor(annual_plot$phase, levels=c("PRE","POST"), labels=c("Pre-breakpoint", "Post-breakpoint"))
 annual_plot$HPU = factor(annual_plot$HPU, levels=c("Bhs","Bimodal"), labels=c("Higher elevation", "Lower elevation"))
 annual_plot$Site = factor(annual_plot$Site, levels=c("W1","BearBrook"), labels=c("Ca-treated", "Reference"))
 
-pdf("...", width=8, height=5.5)
+pdf(".../summer_flux.pdf", width=8, height=5.5)
 print(ggplot(annual_plot) + 
-        geom_point(aes(x=Year_contin, y=CO2_annual_flux, fill=phase), pch=21, size=3, alpha=0.3) + 
-        stat_summary(aes(x=Year_contin, y=CO2_annual_flux), pch=24, geom="point",fun="mean", size=3, fill="black") + 
-        stat_summary(aes(x=Year_contin, y=CO2_annual_flux), geom="errorbar",fun.data="mean_se") + 
-        stat_smooth(aes(x=Year_contin, y=CO2_annual_flux, color=phase), method="lm", formula=y~x) + 
-        labs(x="Year", y=expression(paste("Growing season respiration flux (g"," ",CO[2]," ","-C"," ",m^-2," ",season^-1,")"))) + 
+        geom_point(aes(x=Year_contin, y=summer_cumulative, fill=phase), pch=21, size=3, alpha=0.3) + 
+        stat_summary(aes(x=Year_contin, y=summer_cumulative), pch=24, geom="point",fun="mean", size=3, fill="black") + 
+        stat_summary(aes(x=Year_contin, y=summer_cumulative), geom="errorbar",fun.data="mean_se") + 
+        stat_smooth(aes(x=Year_contin, y=summer_cumulative, color=phase), method="lm", formula=y~x) + 
+        labs(x="Year", y=expression(paste("Summer respiration flux (g"," ",CO[2]," ","-C"," ",m^-2," ",season^-1,")"))) + 
         scale_fill_manual(values=c("darkmagenta","darkcyan")) + 
         scale_color_manual(values=c("darkmagenta","darkcyan")) +
         theme_bw() + 
@@ -316,10 +319,49 @@ print(ggplot(annual_plot) +
               axis.text.x=element_text(size=14, color="black"),
               strip.text=element_text(size=14, color="black"), 
               strip.background=element_rect(fill="white")))
-#dev.off
+dev.off()
+
+#Test for differences in slope across elevation and treatment 
+flux_lme = lme(summer_cumulative~Year_contin + Year_contin:HPU + Year_contin:Site, random=~1|Elevation, data = subset(breaks_annual, phase == "POST"), na.action=na.omit, corr = corCAR1())
+anova_flux_lme=as.data.frame(anova(flux_lme))
+anova_flux_lme$variable = rep("flux", nrow(anova_flux_lme))
+anova_flux_lme$horizon = rep("NA", nrow(anova_flux_lme))
+#Old result
+# numDF denDF     F-value   p-value variable horizon
+# (Intercept)          1   151 156.0260058 0.0000000     flux      NA
+# Year_contin          1   151 165.7361390 0.0000000     flux      NA
+# Year_contin:HPU      1   151   0.2338084 0.6294146     flux      NA
+# Year_contin:Site     1   151   0.4209168 0.5174654     flux      NA
+
+#New result
+# numDF denDF     F-value      p-value variable horizon
+# (Intercept)          1   155 107.3807124 0.000000e+00     flux      NA
+# Year_contin          1   155  34.0149264 3.082735e-08     flux      NA
+# Year_contin:HPU      1   155   0.1450906 7.037934e-01     flux      NA
+# Year_contin:Site     1   155   0.1314809 7.173954e-01     flux      NA
+
+#0.7037934
+#0.7173954
+
+#pdf(paste0(".../flux_lme_qqplot.pdf"))
+print(qqnorm(as.numeric(resid(flux_lme))))
+#dev.off() 
+
+#Slope in the post-breakpoint period
+post_higher_W1 = lm(summer_cumulative~Year_contin, data = subset(breaks_annual, phase == "POST" & Site == "W1" & HPU == "Bhs"))
+#14.716, p < 0.001
+
+post_lower_W1 = lm(summer_cumulative~Year_contin, data = subset(breaks_annual, phase == "POST" & Site == "W1" & HPU == "Bimodal"))
+#11.664, p < 0.001
+
+post_higher_BB = lm(summer_cumulative~Year_contin, data = subset(breaks_annual, phase == "POST" & Site == "BearBrook" & HPU == "Bhs"))
+#11.819, p < 0.001
+
+post_lower_BB = lm(summer_cumulative~Year_contin, data = subset(breaks_annual, phase == "POST" & Site == "BearBrook" & HPU == "Bimodal"))
+#14.571, p < 0.001
 
 #Check breakpoints at all landscape positions: 
-# pdf("...", width=8, height=5)
+# pdf(".../annual_flux_elevation.pdf", width=8, height=5)
 # print(ggplot(annual_plot) + 
 #         stat_summary(aes(x=Year_contin, y=CO2_annual_flux, fill=phase), pch=21, geom="point",fun="mean", size=3) + 
 #         stat_summary(aes(x=Year_contin, y=CO2_annual_flux), geom="errorbar",fun.data="mean_se") + 
@@ -337,7 +379,7 @@ print(ggplot(annual_plot) +
 #               axis.text.x=element_text(size=14, color="black"),
 #               strip.text=element_text(size=14, color="black"), 
 #               strip.background=element_rect(fill="white")))
-# #dev.off
+# dev.off()
 
 #Average flux pre-2015 
 pre2015_flux <- annual_plot %>% 
@@ -346,19 +388,31 @@ pre2015_flux <- annual_plot %>%
 #Average flux 2020
 only2020_flux <- annual_plot %>% 
   filter(Year_contin == 2020) %>% 
-  summarize(mean_2020 = mean(CO2_annual_flux, na.rm=TRUE))
+  summarize(mean_2020 = mean(summer_cumulative, na.rm=TRUE), sd_2020 = sd(summer_cumulative, na.rm=TRUE))
 
 #Average slope post-2015
 post2015_flux <- annual_plot %>% 
   filter(Year_contin >= 2015)
 
-increase <- lm(CO2_annual_flux~Year_contin, data=post2015_flux)
-pre_change <- lm(CO2_annual_flux~Year_contin, data=pre2015_flux)
+increase <- lm(summer_cumulative~Year_contin, data=post2015_flux)
+#20.352, p < 0.001
+
+pre_change <- lm(summer_cumulative~Year_contin, data=pre2015_flux)
+#-1.0067, p = 0.109
 
 #Average pre-2015
 pre2015_flux <- annual_plot %>% 
   filter(Year_contin < 2015) %>% 
-  summarize(Mean_flux = mean(CO2_annual_flux, na.rm=TRUE))
+  summarize(Mean_flux = mean(summer_cumulative, na.rm=TRUE), sd = sd(summer_cumulative, na.rm=TRUE))
+
+#Average post-2015
+post2015_flux <- annual_plot %>% 
+  filter(Year_contin >= 2015) %>% 
+  summarize(Mean_flux = mean(summer_cumulative, na.rm=TRUE), sd = sd(summer_cumulative, na.rm=TRUE))
+
+# only2014_flux <- annual_plot %>% 
+#   filter(Year_contin == 2014) %>% 
+#   summarize(Mean_flux = mean(summer_cumulative, na.rm=TRUE), sd = sd(summer_cumulative, na.rm=TRUE))
 
 #Relative to forest floor carbon####
 str(ff_carbon)
@@ -379,10 +433,10 @@ total_FF <- as.data.frame(cbind(mean_Oa$Year, mean_Oa$N))
 total_FF$C_pool <- mean_Oa$C_Pool + mean_Oie$C_Pool
 
 #SI Fig. 2: pH and Al correlation####
-#No change in R1
+#Updated in R2 to match summer flux data
 
 #Average annual fluxes
-avg_CO2 <- summarySE(breaks_annual, na.rm=TRUE, measurevar = "CO2_annual_flux", groupvars = c("Year_contin"))
+avg_CO2 <- summarySE(breaks_annual, na.rm=TRUE, measurevar = "summer_cumulative", groupvars = c("Year_contin"))
 avg_CO2$Year <- avg_CO2$Year_contin
 
 #Reference WS
@@ -390,6 +444,11 @@ lab_july_BearBrook <- subset(lab_july, Site == "Reference")
 pH_mean_BearBrook <- summarySE(lab_july_BearBrook, measurevar="pH", groupvars=c("Year", "Year_contin"), na.rm=TRUE)
 
 #Monomeric Al
+lysim_data$temp <- lysim_data$Date
+lysim_data <- lysim_data %>% tidyr::separate(temp, into=c("year","month","day"), sep="-")
+lysim_data$phase <- ifelse(lysim_data$year < 2015, "Pre-2015","2015+")
+lysim_data$Year_contin <- as.numeric(lysim_data$year)
+
 lysim_current <- filter(lysim_data, Year_contin >= 2002)
 #Al_mean_BearBrook <- summarySE(lysim_current, measurevar="Alm", groupvars=c("year", "Year_contin"), na.rm=TRUE)
 
@@ -405,19 +464,18 @@ pH_CO2_Al <- pH_CO2 %>% right_join(Ali_mean_BearBrook, by="Year_contin")
 pH_CO2_Al$phase <- ifelse(pH_CO2_Al$Year_contin < 2015, "Pre-2015", "2015-present")
 
 pH_CO2_plot <- ggplot() + 
-  geom_point(aes(x=pH, y=CO2_annual_flux), fill="black", pch=21, size=2, data=pH_CO2_Al) +
-  stat_smooth(aes(x=pH, y=CO2_annual_flux),  color="black", method="lm", data=pH_CO2_Al) + 
+  geom_point(aes(x=pH, y=summer_cumulative), fill="black", pch=21, size=2, data=pH_CO2_Al) +
+  stat_smooth(aes(x=pH, y=summer_cumulative),  color="black", method="lm", data=pH_CO2_Al) + 
   #scale_fill_manual(values=c("darkcyan","darkmagenta")) + 
   #scale_color_manual(values=c("darkcyan","darkmagenta")) + 
   theme_bw() + 
-  labs(x="Soil pH", y=expression(paste("Growing season resp. (g"," ",CO[2]," ","-C"," ",m^-2," ",season^-1,")"))) + 
+  labs(x="Soil pH", y=expression(paste("Summer resp. flux (g"," ",CO[2]," ","-C"," ",m^-2," ",season^-1,")"))) + 
   theme(panel.grid=element_blank(), 
         legend.title=element_blank(), 
         axis.text=element_text(size=16, color="black"), 
         axis.title=element_text(size=16, color="black"))
 
 #Aluminum 
-
 Ali_plot <- ggplot(lysim_current) + 
   stat_summary(aes(x=Year_contin, y=Ali_calculated), fun.data="mean_se", geom="point", size=2) + 
   stat_summary(aes(x=Year_contin, y=Ali_calculated), fun.data="mean_se", geom="errorbar") + 
@@ -427,72 +485,51 @@ Ali_plot <- ggplot(lysim_current) +
         axis.text=element_text(size=16, color="black"), 
         axis.title=element_text(size=16, color="black"))
 
-Al_combined <- ggplot(lysim_data) + 
-  stat_summary(aes(x=Year_contin, y=Ali_calculated), fun.data="mean_se", geom="point", size=2) + 
-  stat_summary(aes(x=Year_contin, y=Ali_calculated), fun.data="mean_se", geom="errorbar") + 
-  stat_summary(aes(x=Year_contin, y=Alo), color="blue", fun.data="mean_se", geom="point", size=2) + 
-  stat_summary(aes(x=Year_contin, y=Alo), color="blue", fun.data="mean_se", geom="errorbar") + 
-  stat_summary(aes(x=Year_contin, y=Alm), color="red", fun.data="mean_se", geom="point", size=2) + 
-  stat_summary(aes(x=Year_contin, y=Alm), color="red", fun.data="mean_se", geom="errorbar") + 
-  theme_bw() + 
-  labs(x="Year", y=expression(paste("Monomeric aluminum (",mu,"mol"," ",L^-1,")"))) + 
-  theme(panel.grid=element_blank(), 
-        axis.text=element_text(size=12, color="black"), 
-        axis.title=element_text(size=12, color="black"))
+# Al_combined <- ggplot(lysim_data) + 
+#   stat_summary(aes(x=Year_contin, y=Ali_calculated), fun.data="mean_se", geom="point", size=2) + 
+#   stat_summary(aes(x=Year_contin, y=Ali_calculated), fun.data="mean_se", geom="errorbar") + 
+#   stat_summary(aes(x=Year_contin, y=Alo), color="blue", fun.data="mean_se", geom="point", size=2) + 
+#   stat_summary(aes(x=Year_contin, y=Alo), color="blue", fun.data="mean_se", geom="errorbar") + 
+#   stat_summary(aes(x=Year_contin, y=Alm), color="red", fun.data="mean_se", geom="point", size=2) + 
+#   stat_summary(aes(x=Year_contin, y=Alm), color="red", fun.data="mean_se", geom="errorbar") + 
+#   theme_bw() + 
+#   labs(x="Year", y=expression(paste("Monomeric aluminum (",mu,"mol"," ",L^-1,")"))) + 
+#   theme(panel.grid=element_blank(), 
+#         axis.text=element_text(size=12, color="black"), 
+#         axis.title=element_text(size=12, color="black"))
 
 Al_CO2_plot <- ggplot() + 
-  geom_point(aes(x=Ali_calculated, y=CO2_annual_flux), fill="black", pch=21, size=2, data=pH_CO2_Al) +
-  stat_smooth(aes(x=Ali_calculated, y=CO2_annual_flux),  color="black", method="lm", data=pH_CO2_Al) + 
+  geom_point(aes(x=Ali_calculated, y=summer_cumulative), fill="black", pch=21, size=2, data=pH_CO2_Al) +
+  stat_smooth(aes(x=Ali_calculated, y=summer_cumulative),  color="black", method="lm", data=pH_CO2_Al) + 
   #scale_fill_manual(values=c("darkcyan","darkmagenta")) + 
   #scale_color_manual(values=c("darkcyan","darkmagenta")) + 
   theme_bw() + 
-  labs(x=expression(paste("Total inorg. monomeric aluminum (",mu,"mol"," ",L^-1,")")), y=expression(paste("Growing season resp. (g"," ",CO[2]," ","-C"," ",m^-2," ",season^-1,")"))) + 
+  labs(x=expression(paste("Total inorg. monomeric aluminum (",mu,"mol"," ",L^-1,")")), y=expression(paste("Summer resp. flux (g"," ",CO[2]," ","-C"," ",m^-2," ",season^-1,")"))) + 
   theme(panel.grid=element_blank(), 
         legend.title=element_blank(), 
         axis.text=element_text(size=16, color="black"), 
         axis.title=element_text(size=16, color="black"))
 
-Al_CO2_plot_poly <- ggplot() + 
-  geom_point(aes(x=Ali_calculated, y=CO2_annual_flux), fill="black", pch=21, size=2, data=pH_CO2_Al) +
-  stat_smooth(aes(x=Ali_calculated, y=CO2_annual_flux),  color="black", method="lm", formula=y~poly(x,2), data=pH_CO2_Al) + 
-  #scale_fill_manual(values=c("darkcyan","darkmagenta")) + 
-  #scale_color_manual(values=c("darkcyan","darkmagenta")) + 
-  theme_bw() + 
-  labs(x=expression(paste("Total inorg. monomeric aluminum (",mu,"mol"," ",L^-1,")")), y=expression(paste("Growing season respiration (g"," ",CO[2]," ","-C"," ",m^-2," ",season^-1,")"))) + 
-  theme(panel.grid=element_blank(), 
-        legend.title=element_blank(), 
-        axis.text=element_text(size=12, color="black"), 
-        axis.title=element_text(size=12, color="black"))
-
-pdf("...", width=5.2, height=5.4)
+pdf(".../pH_CO2.pdf", width=5.2, height=5.4)
 print(pH_CO2_plot)
-#dev.off 
+dev.off() 
 
-pdf("...", width=5.2, height=5.4)
+pdf(".../Al_CO2.pdf", width=5.2, height=5.4)
 print(Al_CO2_plot)
-#dev.off 
+dev.off() 
 
-pdf("...", width=5.2, height=5.4)
+pdf(".../Al_time.pdf", width=5.2, height=5.4)
 print(Ali_plot)
-#dev.off 
+dev.off() 
 
-pH_CO2_corr <- cor.test(pH_CO2$pH, pH_CO2$CO2_annual_flux, method="spearman")
-pH_after_2015 <- subset(pH_CO2, Year_contin >= 2015)
-pH_CO2_2015 <- cor.test(pH_after_2015$pH, pH_after_2015$CO2_annual_flux, method="spearman")
-
-pH_CO2_lm <- lm(CO2_annual_flux~pH, data=pH_CO2) 
-
-Al_CO2_corr <- cor.test(pH_CO2_Al$Ali_calculated, pH_CO2_Al$CO2_annual_flux, method="spearman")
-Al_after_2015 <- subset(pH_CO2_Al, Year_contin >= 2015)
-Al_CO2_2015 <- cor.test(Al_after_2015$pH, Al_after_2015$CO2_annual_flux, method="spearman")
-
-Al_CO2_poly <- lm(CO2_annual_flux~poly(Ali_calculated,2), data=pH_CO2_Al)
+pH_CO2_corr <- cor.test(pH_CO2$pH, pH_CO2$summer_cumulative, method="spearman")
 
 #SI Fig. 3: Map####
 #See mapping code 
+#No change in R1 or R2
 
 #SI Fig. 4: DIC####
-#No change in R1 
+#No change in R1 or R2
 
 DIC_all <- ggplot(lysim_data) + 
   geom_point(aes(x=Date_posixct, y=DIC)) + 
@@ -562,10 +599,9 @@ DIC_2015 <- lm(DIC~Year_contin, data=subset(lysim_data, year >= 2015))
 # (Intercept) -49039.850   8766.201  -5.594 3.01e-08 ***
 #   Year_contin     24.464      4.345   5.630 2.46e-08 ***
 
-
-
 #Fig. 3: Respiration rates####
-#Updated to show all months and July/August only 
+#Updated in R1 to show all months and July/August only
+#No change in R2
 
 plot_field = breaks_field
 plot_field$phase = factor(plot_field$phase, levels=c("PRE","POST"), labels=c("Pre-breakpoint", "Post-breakpoint"))
@@ -614,7 +650,8 @@ print(ggplot(subset(plot_field, Month == "07" | Month == "08")) +
 # dev.off()
 
 #Fig. 4 and new Fig. 5: Microbial parameters####
-#Fig 4 and Fig. 5: Revised version with all points
+#Fig 4 and Fig. 5: Revised in R1, with all points
+#No change in R2
 
 plot_lab = breaks_lab
 plot_lab$phase = factor(plot_lab$phase, levels=c("PRE","POST"), labels=c("Pre-breakpoint", "Post-breakpoint"))
@@ -993,7 +1030,7 @@ print(qqnorm(as.numeric(resid(SRESPC_OaA_lme))))
 print(qqnorm(as.numeric(resid(SRESPC_Min_lme))))
 #dev.off 
 
-#3: CN_ratio##########
+#3: CN_ratio####
 #Test for differences in slope across elevation and treatment 
 CN_ratio_OiOe_lme = lme(log(CN_ratio)~Year_contin + Year_contin:HPU + Year_contin:Site, random=~1|Elevation, data = subset(breaks_lab, phase == "POST" & Hor == "Oi/Oe" & (Month == "07" | Month == "06")), na.action=na.omit, corr = corCAR1())
 anova_CN_ratio_OiOe_lme=as.data.frame(anova(CN_ratio_OiOe_lme))
@@ -1048,6 +1085,7 @@ print(qqnorm(as.numeric(resid(CN_ratio_Min_lme))))
 
 #SI Fig. 6: MBC correlation####
 #New for R1
+#No change for R2
 
 #July measurements only for both MBC and soil respiration 
 
@@ -1167,6 +1205,7 @@ Min_post$phase <- rep("2015-present",nrow(Min_post))
 MBC_Rs_corr <- rbind(OiOe, OiOe_pre, OiOe_post, OaA, OaA_pre, OaA_post, Min, Min_pre, Min_post)
 
 #SI Fig. 7: Soil temperature####
+#No change in R2
 
 sensor_dat_use <- sensor_dat %>% 
   dplyr::filter(Year > 2010 & Year < 2021)
