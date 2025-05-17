@@ -1,7 +1,7 @@
 #Symptoms of a changing carbon cycle: a decadal-scale breakpoint in soil respiration in a Northeastern US forest 
 #Draft for Nature Climate Change
 #Data import, processing, and breakpoint detection
-#Updated 07-23-24
+#Updated 05-14-25
 
 #Load packages#######################
 
@@ -199,7 +199,8 @@ resp_lab <- resp_lab %>% right_join(core_plots_reduced, by="Plot")
 resp_lab$Plot_number <- as.factor(resp_lab$Plot_number)
 
 #9: Field cumulative fluxes###########
-#Following Taylor et al. (2021): extrapolate to 30 d increments, sum by year
+#Taylor et al. (2021): extrapolate to 30 d increments, sum by year
+#Modified approach for revision 2: summer (June, July, August) cumulative flux with missing months gap-filled (mean summer flux)
 #CO2_rate = gramPerMeterSquaredPerHour #g C per m2 per hr
 
 #Check for multiple observations per month
@@ -215,35 +216,30 @@ chamber_check <- summarySE(resp_field, measurevar = "CO2_30d_flux", groupvars = 
 test <- ifelse(all(chamber_check$N == 3), "TRUE", "FALSE") #TRUE
 test
 
-#Exclude November
-resp_red <- subset(resp_field, !(Month == "11"))
+#Reduce to June, July, and August measurements
+resp_red_complete <- resp_field %>% 
+  filter(Month == "06" | Month == "07" | Month == "08") %>% 
+  droplevels() %>% 
+  tidyr::complete(Site, Elevation, Year, Month, Chamber, explicit=TRUE)
 
-#How many months? 
-length(levels(resp_red$Month)) #7 months
+mean_summer_30d <- resp_red_complete %>% 
+  dplyr::group_by(Site, Elevation, Year) %>% 
+  dplyr::summarize(summer_mean = mean(CO2_30d_flux, na.rm=TRUE), across())
 
-#Sum by year: does not include non-growing season fluxes
-#Without November
-resp_sum <- as.data.frame(aggregate(resp_red$CO2_30d_flux, by=list(Year = resp_red$Year, HPU = resp_red$HPU, Chamber = resp_red$Chamber, Site = resp_red$Site, Elevation = resp_red$Elevation), FUN=sum))
-colnames(resp_sum) <- c("Year", "HPU", "Chamber", "Site", "Elevation", "CO2_annual_flux")
+mean_summer_30d$CO2_30d_flux_gapfilled <- 
+  ifelse(is.na(mean_summer_30d$CO2_30d_flux), mean_summer_30d$summer_mean, mean_summer_30d$CO2_30d_flux)
 
-sum_check <- summarySE(resp_sum, measurevar = "CO2_annual_flux", groupvars = c("Site", "Elevation", "Year"))
-test <- ifelse(all(sum_check$N == 3), "TRUE", "FALSE") #TRUE
-test
+#Summer cumulative
+summer_cumulative <- mean_summer_30d %>% 
+  dplyr::group_by(Site, Elevation, Year, Chamber) %>% 
+  dplyr::summarize(summer_cumulative = sum(CO2_30d_flux_gapfilled))
 
-#Convert Year to continuous
-resp_sum$Year_contin <- as.character(resp_sum$Year)
-resp_sum$Year_contin <- as.numeric(resp_sum$Year_contin)
+#Add continuous year
+summer_cumulative$Year_contin <- as.character(summer_cumulative$Year)
+summer_cumulative$Year_contin <- as.numeric(summer_cumulative$Year_contin)
 
 resp_lab$Year_contin <- as.character(resp_lab$Year)
 resp_lab$Year_contin <- as.numeric(resp_lab$Year_contin)
-
-# #Check plot:
-# h <- ggplot(resp_sum)
-# h +
-#   stat_summary(aes(x=Year_contin, y=CO2_annual_flux, group=Elevation, fill=Elevation), fun = "mean", geom="point", show.legend=TRUE, pch=21) +
-#   facet_grid(.~Elevation) +
-#   stat_summary(aes(x=Year_contin, y=CO2_annual_flux, group=Elevation, color=Elevation), fun.data = "mean_se", geom="errorbar", show.legend=TRUE) +
-#   facet_grid(Site~Elevation)
 
 #10: Find breakpoints##############
 #Uses all field respiration rates
@@ -474,8 +470,8 @@ breaks <- breaks %>% separate(temp, into=c("break_year","break_month","break_day
 resp_field$Site <- factor(resp_field$Site, levels=c("Bear Brook","W1"), labels=c("BearBrook","W1"))
 resp_field$Elevation <- factor(resp_field$Elevation, levels=c("high","low","mid","spruce_fir"))
 
-resp_sum$Site <- factor(resp_sum$Site, levels=c("Bear Brook","W1"), labels=c("BearBrook","W1"))
-resp_sum$Elevation <- factor(resp_sum$Elevation, levels=c("high","low","mid","spruce_fir"))
+summer_cumulative$Site <- factor(summer_cumulative$Site, levels=c("Bear Brook","W1"), labels=c("BearBrook","W1"))
+summer_cumulative$Elevation <- factor(summer_cumulative$Elevation, levels=c("high","low","mid","spruce_fir"))
 
 names(resp_lab)[names(resp_lab) == "Treatment"] = "Site"
 names(resp_lab)[names(resp_lab) == "El"] = "Elevation"
@@ -484,7 +480,7 @@ names(resp_lab)[names(resp_lab) == "El"] = "Elevation"
 resp_lab <- resp_lab %>% filter(!(Elevation == "upper"))
 
 #New dataframes
-breaks_annual <- breaks %>% right_join(resp_sum, by=c("Site","Elevation"))
+breaks_annual <- breaks %>% right_join(summer_cumulative, by=c("Site","Elevation"))
 breaks_field <- breaks %>% right_join(resp_field, by=c("Site","Elevation"))
 breaks_lab <- breaks %>% right_join(resp_lab, by=c("Site","Elevation"))
 
